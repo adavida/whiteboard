@@ -1,2 +1,3 @@
 [workspace]
 members = ["serve", "client"]
+default-members = ["serve"]

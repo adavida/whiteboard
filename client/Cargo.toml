@@ -5,12 +5,23 @@ edition = "2021"
 
 [dependencies]
 console_error_panic_hook = "0.1"
-web-sys = { version = "0.3", features = [
-    "Window",
-    "Document",
-    "HtmlElement",
-    "Node",
-    "Text",
-] }
 wasm-bindgen = "0.2.79"
 wee_alloc = "0.4"
+js-sys = "0.3"
+
+[dependencies.web-sys]
+version = "0.3.22"
+features = [
+    "BinaryType",
+    "Blob",
+    "Document",
+    "ErrorEvent",
+    "FileReader",
+    "HtmlElement",
+    "MessageEvent",
+    "Node",
+    "ProgressEvent",
+    "Text",
+    "WebSocket",
+    "Window",
+]

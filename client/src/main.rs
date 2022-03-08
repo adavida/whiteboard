@@ -8,6 +8,7 @@ use wasm_bindgen::prelude::*;
 use web_sys::window;
 
 mod compoment;
+mod ws;
 
 #[wasm_bindgen]
 extern "C" {
@@ -46,4 +47,9 @@ fn start_app() {
 fn main() {
     set_panic_hook();
     start_app();
+    let ws = ws::ws::Ws::get_connect("ws://localhost:8080/ws").expect("error");
+    let msg = String::from("couocu les copains");
+    ws.send_msg_string("hello from rs");
+    ws.send_msg_string(msg.as_ref());
+    ws.wait_on_log_new_message();
 }
