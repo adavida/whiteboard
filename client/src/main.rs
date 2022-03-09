@@ -6,6 +6,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 use console_error_panic_hook::set_once as set_panic_hook;
 use wasm_bindgen::prelude::*;
 use web_sys::window;
+use web_sys::HtmlInputElement;
 
 mod compoment;
 mod ws;
@@ -42,6 +43,15 @@ fn start_app() {
         .expect("Failed to append text");
     body.append_child(compoment::first::get_first("david").as_ref())
         .expect("toto");
+    let input = compoment::input::Input::new();
+
+    let input_clone: HtmlInputElement = input.input.clone();
+    let on_change = Closure::wrap(Box::new(move || {
+        log(input_clone.value().as_str());
+        input_clone.set_value("");
+    }) as Box<dyn FnMut()>);
+    input.set_change(on_change);
+    body.append_child(input.input.as_ref()).expect("titi");
 }
 
 fn main() {
