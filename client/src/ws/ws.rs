@@ -19,9 +19,10 @@ impl Ws {
         Ok(Ws { ws: ws })
     }
 
-    pub fn send_msg_string(&self, msg: &str) {
+    pub fn _send_msg_string(&self, msg: &str) {
         let cloned_ws = self.ws.clone();
         let c_m = msg.to_string();
+        console_log!("{:?}", msg);
 
         let onopen_callback =
             Closure::wrap(
@@ -33,7 +34,15 @@ impl Ws {
 
         self.ws
             .set_onopen(Some(onopen_callback.as_ref().unchecked_ref()));
+        console_log!("{:?}", self.ws);
         onopen_callback.forget();
+    }
+
+    pub fn send_msg_string(&self, msg: &str) {
+        match self.ws.send_with_str(msg) {
+            Ok(_) => console_log!("message successfully sent"),
+            Err(err) => console_log!("error sending message: {:?}", err),
+        }
     }
 
     pub fn wait_on_log_new_message(&self) {

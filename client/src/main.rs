@@ -44,10 +44,12 @@ fn start_app() {
     body.append_child(compoment::first::get_first("david").as_ref())
         .expect("toto");
     let input = compoment::input::Input::new();
-
+    let ws = ws::ws::Ws::get_connect("ws://localhost:8080/ws").expect("error");
+    ws.wait_on_log_new_message();
     let input_clone: HtmlInputElement = input.input.clone();
     let on_change = Closure::wrap(Box::new(move || {
         log(input_clone.value().as_str());
+        ws.send_msg_string(input_clone.value().as_str());
         input_clone.set_value("");
     }) as Box<dyn FnMut()>);
     input.set_change(on_change);
@@ -58,8 +60,10 @@ fn main() {
     set_panic_hook();
     start_app();
     let ws = ws::ws::Ws::get_connect("ws://localhost:8080/ws").expect("error");
+    ws.wait_on_log_new_message();
     let msg = String::from("couocu les copains");
     ws.send_msg_string("hello from rs");
     ws.send_msg_string(msg.as_ref());
-    ws.wait_on_log_new_message();
+    let msg = String::from("couocu les copains");
+    ws.send_msg_string(msg.as_ref());
 }

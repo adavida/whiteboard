@@ -30,14 +30,12 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
             Ok(ws::Message::Ping(msg)) => ctx.pong(&msg),
             Ok(ws::Message::Text(text)) => {
                 println!("message : {text}");
-                ctx.text("hello from rs server")
+                ctx.text(format!("hello from rs server: {text}"))
             }
             Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
-            Ok(ws::Message::Close(reason)) => {
-                println!("handle close ");
-                dbg!(&reason);
-                ctx.close(reason)
-            }
+            Ok(ws::Message::Close(reason)) => ctx.close(reason),
+            // println!("handle close ");
+            // dbg!(&reason);
             _ => (),
         }
     }
