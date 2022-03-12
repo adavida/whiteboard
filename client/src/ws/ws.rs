@@ -19,25 +19,6 @@ impl Ws {
         Ok(Ws { ws: ws })
     }
 
-    pub fn _send_msg_string(&self, msg: &str) {
-        let cloned_ws = self.ws.clone();
-        let c_m = msg.to_string();
-        console_log!("{:?}", msg);
-
-        let onopen_callback =
-            Closure::wrap(
-                Box::new(move |_| match cloned_ws.send_with_str(c_m.as_str()) {
-                    Ok(_) => console_log!("message successfully sent"),
-                    Err(err) => console_log!("error sending message: {:?}", err),
-                }) as Box<dyn FnMut(JsValue)>,
-            );
-
-        self.ws
-            .set_onopen(Some(onopen_callback.as_ref().unchecked_ref()));
-        console_log!("{:?}", self.ws);
-        onopen_callback.forget();
-    }
-
     pub fn send_msg_string(&self, msg: &str) {
         match self.ws.send_with_str(msg) {
             Ok(_) => console_log!("message successfully sent"),
@@ -49,6 +30,7 @@ impl Ws {
         let onmessage_callback = Closure::wrap(Box::new(move |e: MessageEvent| {
             if let Ok(txt) = e.data().dyn_into::<js_sys::JsString>() {
                 console_log!("message event, received Text: {:?}", txt);
+                crate::add_text(txt.as_string().expect("not string").as_str());
             } else {
                 console_log!("message : {:?}", e.data());
             }

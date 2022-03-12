@@ -35,6 +35,18 @@ pub fn get_document() -> web_sys::Document {
         .expect("Could not access document")
 }
 
+pub fn add_text(text: &str) {
+    let document = get_document();
+    let body = document.body().expect("eee");
+    let br = document
+        .create_element("br")
+        .expect("cannot create br element");
+    let text_node = document.create_text_node(text.as_ref());
+    body.append_child(br.as_ref())
+        .expect("cannot add br element in body");
+    body.append_child(text_node.as_ref()).expect("e1");
+}
+
 fn start_app() {
     let document = get_document();
     let body = document.body().expect("Could not access document.body");
@@ -48,8 +60,10 @@ fn start_app() {
     ws.wait_on_log_new_message();
     let input_clone: HtmlInputElement = input.input.clone();
     let on_change = Closure::wrap(Box::new(move || {
-        log(input_clone.value().as_str());
-        ws.send_msg_string(input_clone.value().as_str());
+        let val = input_clone.value();
+        log(val.as_str());
+        add_text(val.as_str());
+        ws.send_msg_string(val.as_str());
         input_clone.set_value("");
     }) as Box<dyn FnMut()>);
     input.set_change(on_change);
@@ -59,11 +73,4 @@ fn start_app() {
 fn main() {
     set_panic_hook();
     start_app();
-    let ws = ws::ws::Ws::get_connect("ws://localhost:8080/ws").expect("error");
-    ws.wait_on_log_new_message();
-    let msg = String::from("couocu les copains");
-    ws.send_msg_string("hello from rs");
-    ws.send_msg_string(msg.as_ref());
-    let msg = String::from("couocu les copains");
-    ws.send_msg_string(msg.as_ref());
 }
