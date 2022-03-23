@@ -2,11 +2,17 @@ use actix::prelude::*;
 use actix_files as fs;
 use actix_web::{get, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder};
 use actix_web_actors::ws;
+use std::env;
 
-struct MyWs;
+mod server;
+
+struct MyWs {
+    pub addr: Addr<server::Server>,
+}
+
 impl MyWs {
-    fn new() -> Self {
-        Self
+    fn new(addr: Addr<server::Server>) -> Self {
+        Self { addr: addr }
     }
 }
 
@@ -22,6 +28,12 @@ impl Actor for MyWs {
     }
 }
 
+impl Drop for MyWs {
+    fn drop(&mut self) {
+        println!("destoy ws");
+    }
+}
+
 /// Handler for ws::Message message
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
@@ -30,7 +42,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
             Ok(ws::Message::Ping(msg)) => ctx.pong(&msg),
             Ok(ws::Message::Text(text)) => {
                 println!("message : {text}");
-                ctx.text(format!("hello from rs server: {text}"))
+                ctx.text(format!("hello from rs server: {text}"));
+                self.addr.do_send(server::TestMsg {
+                    msg: text.to_string(),
+                });
             }
             Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
             Ok(ws::Message::Close(reason)) => ctx.close(reason),
@@ -42,9 +57,12 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
 }
 
 #[get("/ws")]
-async fn ws_r(req: HttpRequest, stream: web::Payload) -> Result<HttpResponse, Error> {
-    println!("ws");
-    let resp = ws::start(MyWs::new(), &req, stream);
+async fn ws_r(
+    req: HttpRequest,
+    stream: web::Payload,
+    srv: web::Data<Addr<server::Server>>,
+) -> Result<HttpResponse, Error> {
+    let resp = ws::start(MyWs::new(srv.get_ref().clone()), &req, stream);
     resp
 }
 
@@ -55,9 +73,12 @@ async fn root() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("hello word");
-    HttpServer::new(|| {
+    env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
+    let server = server::Server::new().start();
+
+    HttpServer::new(move || {
         App::new()
+            .app_data(web::Data::new(server.clone()))
             .service(root)
             .service(ws_r)
             .service(fs::Files::new("/test", "static").index_file("index.html"))
