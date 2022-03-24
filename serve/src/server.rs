@@ -3,7 +3,7 @@ use actix::prelude::*;
 pub struct Server;
 
 #[derive(Message)]
-#[rtype(result = "()")]
+#[rtype(usize)]
 pub struct TestMsg {
     pub msg: String,
 }
@@ -19,9 +19,11 @@ impl Actor for Server {
 }
 
 impl Handler<TestMsg> for Server {
-    type Result = ();
+    type Result = usize;
 
-    fn handle(&mut self, msg: TestMsg, _ctx: &mut Context<Self>) {
+    fn handle(&mut self, msg: TestMsg, _ctx: &mut Context<Self>) -> usize {
         println!("receive message {}", msg.msg);
+
+        1
     }
 }

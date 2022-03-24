@@ -43,9 +43,20 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
             Ok(ws::Message::Text(text)) => {
                 println!("message : {text}");
                 ctx.text(format!("hello from rs server: {text}"));
-                self.addr.do_send(server::TestMsg {
-                    msg: text.to_string(),
-                });
+                self.addr
+                    .send(server::TestMsg {
+                        msg: text.to_string(),
+                    })
+                    .into_actor(self)
+                    .then(|res, _act, ctx| {
+                        match res {
+                            Ok(res) => println!("== {res}"),
+                            // something is wrong with chat server
+                            _ => ctx.stop(),
+                        }
+                        fut::ready(())
+                    })
+                    .wait(ctx);
             }
             Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
             Ok(ws::Message::Close(reason)) => ctx.close(reason),
