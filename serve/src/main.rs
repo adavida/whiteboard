@@ -6,13 +6,15 @@ use std::env;
 
 mod server;
 
-struct MyWs {
+#[derive(Debug)]
+pub struct MyWs {
     pub addr: Addr<server::Server>,
+    pub id: usize,
 }
 
 impl MyWs {
-    fn new(addr: Addr<server::Server>) -> Self {
-        Self { addr: addr }
+    fn new(addr_: Addr<server::Server>) -> Self {
+        Self { addr: addr_, id: 0 }
     }
 }
 
@@ -21,6 +23,21 @@ impl Actor for MyWs {
 
     fn started(&mut self, _ctx: &mut Self::Context) {
         println!("Actor is alive");
+        let res = self
+            .addr
+            .send(server::Connect {
+                ctx: _ctx.address(),
+            })
+            .into_actor(self)
+            .then(|res, _ws, _ctx| {
+                match res {
+                    Ok(id) => println!("{id}"),
+                    _ => println!("err"),
+                }
+                fut::ready(())
+            })
+            .wait(_ctx);
+        dbg!(res);
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
@@ -34,7 +51,6 @@ impl Drop for MyWs {
     }
 }
 
-/// Handler for ws::Message message
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
         println!("into handle");
@@ -64,6 +80,15 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
             // dbg!(&reason);
             _ => (),
         }
+    }
+}
+
+impl Handler<server::TestMsg> for MyWs {
+    type Result = usize;
+
+    fn handle(&mut self, msg: server::TestMsg, ctx: &mut Self::Context) -> usize {
+        ctx.text(msg.msg);
+        1
     }
 }
 
