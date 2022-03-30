@@ -20,6 +20,7 @@ features = [
     "FileReader",
     "HtmlElement",
     "HtmlInputElement",
+    "Location",
     "MessageEvent",
     "Node",
     "ProgressEvent",

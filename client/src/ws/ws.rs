@@ -35,8 +35,26 @@ impl Ws {
                 console_log!("message : {:?}", e.data());
             }
         }) as Box<dyn FnMut(MessageEvent)>);
+        let onclose_callback = Closure::wrap(Box::new(|| {
+            let closure = Closure::wrap(Box::new(|| {
+                console_log!("Timeout");
+                let window = web_sys::window().unwrap();
+                let _ = window.location().reload();
+            }) as Box<dyn FnMut()>);
+            let window = web_sys::window().unwrap();
+            window
+                .set_timeout_with_callback_and_timeout_and_arguments_0(
+                    closure.as_ref().unchecked_ref(),
+                    3000,
+                )
+                .unwrap();
+            closure.forget();
+        }) as Box<dyn FnMut()>);
         self.ws
             .set_onmessage(Some(onmessage_callback.as_ref().unchecked_ref()));
+        self.ws
+            .set_onclose(Some(onclose_callback.as_ref().unchecked_ref()));
         onmessage_callback.forget();
+        onclose_callback.forget();
     }
 }
