@@ -48,13 +48,17 @@ impl Handler<TestMsg> for Server {
         1
     }
 }
+impl Default for Server {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Handler<Connect> for Server {
     type Result = usize;
-
     fn handle(&mut self, msg: Connect, _: &mut Context<Self>) -> usize {
         let id = self.count;
-        self.addrs.insert(id, msg.ctx.clone());
+        self.addrs.insert(id, msg.ctx);
         println!("context {}", self.addrs.len());
         self.count += 1;
         id
