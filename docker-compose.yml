@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  srv: &base
+    build: ./docker
+    volumes:
+      - .:/app
+      - target_data:/app/target
+      - client_dist:/app/client/dist
+    working_dir: /app
+    entrypoint: "cargo watch -x 'run' -i client"
+    ports:
+      - 8080:8080
+
+  client:
+    <<: *base
+    working_dir: /app/client
+    entrypoint: trunk serve -w --port 8000
+    ports:
+      - 8000:8000
+
+volumes:
+  target_data:
+  client_dist:
