@@ -28,9 +28,8 @@ impl Actor for MyWs {
             })
             .into_actor(self)
             .then(|res, _ws, _ctx| {
-                match res {
-                    Ok(id) => println!("{id}"),
-                    _ => println!("err"),
+                if let Err(_) = res {
+                    println!("err");
                 }
                 fut::ready(())
             })
