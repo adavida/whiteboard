@@ -56,7 +56,7 @@ fn start_app() {
     body.append_child(compoment::first::get_first("david").as_ref())
         .expect("toto");
     let input = compoment::input::Input::new();
-    let ws = ws::ws::Ws::get_connect("ws://localhost:8080/ws");
+    let ws = ws::Ws::get_connect("ws://localhost:8080/ws");
     let input_clone: HtmlInputElement = input.input.clone();
     let on_change = Closure::wrap(Box::new(move || {
         let val = input_clone.value();

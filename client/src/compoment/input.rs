@@ -11,12 +11,14 @@ pub struct Input {
 impl Input {
     pub fn new() -> Self {
         let document = get_document();
-        let input = document
+        let input_element = document
             .create_element("input")
             .unwrap()
             .dyn_into::<HtmlInputElement>()
             .unwrap();
-        Input { input: input }
+        Input {
+            input: input_element,
+        }
     }
 
     pub fn set_change(&self, onchange_fn: Closure<dyn std::ops::FnMut()>) {
