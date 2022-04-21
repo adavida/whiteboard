@@ -1,11 +1,11 @@
 use actix::prelude::*;
 use std::collections::HashMap;
 
-pub type AddrWS = Addr<super::MyWs>;
+type AddrWS = Addr<super::my_ws::MyWs>;
 
 #[derive(Debug)]
 pub struct Server {
-    addrs: HashMap<usize, Addr<super::MyWs>>,
+    addrs: HashMap<usize, AddrWS>,
     count: usize,
 }
 
