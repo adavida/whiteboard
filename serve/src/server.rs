@@ -38,8 +38,6 @@ impl Handler<TestMsg> for Server {
     type Result = usize;
 
     fn handle(&mut self, msg: TestMsg, _ctx: &mut Context<Self>) -> usize {
-        println!("receive message {}", msg.msg);
-
         for (_id, _ctx) in self.addrs.iter() {
             _ctx.do_send(TestMsg {
                 msg: format!("dispatch msg : {}", msg.msg),
@@ -59,7 +57,6 @@ impl Handler<Connect> for Server {
     fn handle(&mut self, msg: Connect, _: &mut Context<Self>) -> usize {
         let id = self.count;
         self.addrs.insert(id, msg.ctx);
-        println!("context {}", self.addrs.len());
         self.count += 1;
         id
     }

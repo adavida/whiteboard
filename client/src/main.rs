@@ -61,7 +61,6 @@ fn start_app() {
     let on_change = Closure::wrap(Box::new(move || {
         let val = input_clone.value();
         log(val.as_str());
-        add_text(val.as_str());
         ws.send_msg_string(val.as_str());
         input_clone.set_value("");
     }) as Box<dyn FnMut()>);

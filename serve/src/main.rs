@@ -45,20 +45,11 @@ impl Actor for MyWs {
     }
 }
 
-impl Drop for MyWs {
-    fn drop(&mut self) {
-        println!("destoy ws");
-    }
-}
-
 impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
     fn handle(&mut self, msg: Result<ws::Message, ws::ProtocolError>, ctx: &mut Self::Context) {
-        println!("into handle");
         match msg {
             Ok(ws::Message::Ping(msg)) => ctx.pong(&msg),
             Ok(ws::Message::Text(text)) => {
-                println!("message : {text}");
-                ctx.text(format!("hello from rs server: {text}"));
                 self.addr
                     .send(server::TestMsg {
                         msg: text.to_string(),
@@ -66,8 +57,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
                     .into_actor(self)
                     .then(|res, _act, ctx| {
                         match res {
-                            Ok(res) => println!("== {res}"),
-                            // something is wrong with chat server
+                            Ok(res) => println!("{res}"),
                             _ => ctx.stop(),
                         }
                         fut::ready(())
@@ -76,8 +66,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
             }
             Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
             Ok(ws::Message::Close(reason)) => ctx.close(reason),
-            // println!("handle close ");
-            // dbg!(&reason);
             _ => (),
         }
     }

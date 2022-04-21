@@ -20,10 +20,7 @@ fn create_onmessage_callback() -> Closure<dyn std::ops::FnMut(web_sys::MessageEv
     }) as Box<dyn FnMut(MessageEvent)>)
 }
 fn create_reconnect_callback(ws_arc: Arc<Mutex<WebSocket>>) -> Closure<dyn std::ops::FnMut()> {
-    console_log!("create_reconnect_callback");
-
     Closure::wrap(Box::new(move || {
-        console_log!("Timeout");
         match Ws::create_ws("ws://localhost:8080/ws") {
             Ok(ws_) => {
                 let mut ws = ws_arc.lock().unwrap();
