@@ -40,7 +40,7 @@ impl Handler<TestMsg> for Server {
     fn handle(&mut self, msg: TestMsg, _ctx: &mut Context<Self>) -> usize {
         for (_id, _ctx) in self.addrs.iter() {
             _ctx.do_send(TestMsg {
-                msg: format!("dispatch msg : {}", msg.msg),
+                msg: msg.msg.to_string(),
             });
         }
         1

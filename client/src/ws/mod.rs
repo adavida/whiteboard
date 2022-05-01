@@ -2,7 +2,7 @@ use crate::log;
 use std::sync::{Arc, Mutex};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{MessageEvent, WebSocket};
+use web_sys::WebSocket;
 
 macro_rules! console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
@@ -14,20 +14,20 @@ pub struct Ws {
     ws: MutexWebsocket,
 }
 
-fn create_onmessage_callback() -> Closure<dyn std::ops::FnMut(web_sys::MessageEvent)> {
-    Closure::wrap(Box::new(|e: MessageEvent| {
-        if let Ok(txt) = e.data().dyn_into::<js_sys::JsString>() {
-            crate::add_text(txt.as_string().expect("not string").as_str());
-        }
-    }) as Box<dyn FnMut(MessageEvent)>)
-}
+// fn create_onmessage_callback() -> Closure<dyn std::ops::FnMut(web_sys::MessageEvent)> {
+//     Closure::wrap(Box::new(|e: MessageEvent| {
+//         if let Ok(txt) = e.data().dyn_into::<js_sys::JsString>() {
+//             crate::add_text(txt.as_string().expect("not string").as_str());
+//         }
+//     }) as Box<dyn FnMut(MessageEvent)>)
+// }
 
 fn create_reconnect_callback(ws_arc: MutexWebsocket) -> Closure<dyn std::ops::FnMut()> {
     Closure::wrap(Box::new(move || {
         match Ws::create_ws("ws://localhost:8080/ws") {
             Ok(ws_) => {
                 let mut ws = ws_arc.lock().unwrap();
-                *ws = ws_
+                *ws = ws_;
             }
             _ => try_reconnect(ws_arc.clone()),
         }
@@ -41,9 +41,9 @@ fn create_onclose_callback(ws_arc: MutexWebsocket) -> Closure<dyn std::ops::FnMu
 
 fn set_callback_in_ws(ws_arc: MutexWebsocket) {
     let ws = ws_arc.lock().unwrap();
-    let onmessage_callback = create_onmessage_callback();
-    ws.set_onmessage(Some(onmessage_callback.as_ref().unchecked_ref()));
-    onmessage_callback.forget();
+    // let onmessage_callback = create_onmessage_callback();
+    // ws.set_onmessage(Some(onmessage_callback.as_ref().unchecked_ref()));
+    // onmessage_callback.forget();
     let onclose_callback = create_onclose_callback(ws_arc.clone());
     ws.set_onclose(Some(onclose_callback.as_ref().unchecked_ref()));
     onclose_callback.forget();
@@ -81,6 +81,18 @@ impl Ws {
             Ok(_) => console_log!("message successfully sent"),
             Err(err) => console_log!("error sending message: {:?}", err),
         }
+    }
+
+    pub fn set_onmessage_callback(
+        &self,
+        callback: Closure<dyn std::ops::FnMut(web_sys::MessageEvent)>,
+    ) {
+        self.get_ws()
+            .lock()
+            .unwrap()
+            .set_onmessage(Some(callback.as_ref().unchecked_ref()));
+
+        callback.forget();
     }
 
     fn get_ws(&self) -> MutexWebsocket {

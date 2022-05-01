@@ -5,6 +5,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 use console_error_panic_hook::set_once as set_panic_hook;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 use web_sys::window;
 use web_sys::HtmlInputElement;
 
@@ -50,17 +51,21 @@ pub fn add_text(text: &str) {
 fn start_app() {
     let document = get_document();
     let body = document.body().expect("Could not access document.body");
-    let text_node = document.create_text_node("Bonjour les amis");
-    body.append_child(text_node.as_ref())
-        .expect("Failed to append text");
-    body.append_child(compoment::first::get_first("david").as_ref())
-        .expect("toto");
+    let chat_box = compoment::chat::ChatBox::create(document, &body);
+
     let input = compoment::input::Input::new();
     let ws = ws::Ws::get_connect("ws://localhost:8080/ws");
+
+    let onmessage_callback = Closure::wrap(Box::new(move |e: web_sys::MessageEvent| {
+        if let Ok(txt) = e.data().dyn_into::<js_sys::JsString>() {
+            chat_box.new_message(txt.as_string().expect("not string").as_str());
+        }
+    }) as Box<dyn FnMut(web_sys::MessageEvent)>);
+
+    ws.set_onmessage_callback(onmessage_callback);
     let input_clone: HtmlInputElement = input.input.clone();
     let on_change = Closure::wrap(Box::new(move || {
         let val = input_clone.value();
-        log(val.as_str());
         ws.send_msg_string(val.as_str());
         input_clone.set_value("");
     }) as Box<dyn FnMut()>);

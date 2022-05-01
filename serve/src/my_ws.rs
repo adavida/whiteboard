@@ -21,20 +21,19 @@ impl Actor for MyWs {
 
     fn started(&mut self, _ctx: &mut Self::Context) {
         println!("Actor is alive");
-        let res = self
+        let _res = self
             .addr
             .send(server::Connect {
                 ctx: _ctx.address(),
             })
             .into_actor(self)
             .then(|res, _ws, _ctx| {
-                if let Err(_) = res {
+                if res.is_err() {
                     println!("err");
                 }
                 fut::ready(())
             })
             .wait(_ctx);
-        dbg!(res);
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {
@@ -54,9 +53,9 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
                     .into_actor(self)
                     .then(|res, _act, ctx| {
                         match res {
-                            Ok(res) => println!("{res}"),
+                            Ok(_res) => {}
                             _ => ctx.stop(),
-                        }
+                        };
                         fut::ready(())
                     })
                     .wait(ctx);
