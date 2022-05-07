@@ -1,8 +1,9 @@
 use actix::prelude::*;
 use actix_files as fs;
-use actix_web::{get, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder};
+use actix_web::{
+    get, middleware::Logger, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder,
+};
 use actix_web_actors::ws;
-use std::env;
 
 mod my_ws;
 mod server;
@@ -24,11 +25,17 @@ async fn root() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    env::set_var("RUST_LOG", "actix_web=debug,actix_server=info");
+    std::env::set_var("RUST_LOG", "info");
+    std::env::set_var("RUST_BACKTRACE", "1");
+    env_logger::init();
+
     let server = server::Server::new().start();
 
     HttpServer::new(move || {
+        let logger = Logger::default();
+
         App::new()
+            .wrap(logger)
             .app_data(web::Data::new(server.clone()))
             .service(root)
             .service(ws_r)
