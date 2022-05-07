@@ -6,7 +6,7 @@ services:
     volumes:
       - .:/app
       - target_data:/app/target
-      - client_dist:/app/client/dist
+      - client_dist:/app/dist
     working_dir: /app
     entrypoint: "cargo watch -x 'run' -i client"
     ports:
@@ -14,7 +14,7 @@ services:
 
   client:
     <<: *base
-    entrypoint: trunk watch client/index.html
+    entrypoint: trunk watch client/index.html -d dist
     ports:
       - 8000:8000
 

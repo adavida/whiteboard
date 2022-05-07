@@ -1,7 +1,7 @@
 use actix::prelude::*;
 use actix_files as fs;
 use actix_web::{
-    get, middleware::Logger, web, App, Error, HttpRequest, HttpResponse, HttpServer, Responder,
+    get, middleware::Logger, web, App, Error, HttpRequest, HttpResponse, HttpServer,
 };
 use actix_web_actors::ws;
 
@@ -18,11 +18,6 @@ async fn ws_r(
     resp
 }
 
-#[get("/")]
-async fn root() -> impl Responder {
-    HttpResponse::Ok().body("good jobs")
-}
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "info");
@@ -37,9 +32,8 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .wrap(logger)
             .app_data(web::Data::new(server.clone()))
-            .service(root)
             .service(ws_r)
-            .service(fs::Files::new("/test", "static").index_file("index.html"))
+            .service(fs::Files::new("", "dist").index_file("index.html"))
     })
     .bind("0.0.0.0:8080")?
     .run()
