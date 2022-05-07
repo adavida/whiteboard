@@ -14,8 +14,7 @@ services:
 
   client:
     <<: *base
-    working_dir: /app/client
-    entrypoint: trunk serve -w ./ --address 0.0.0.0 --port 8000
+    entrypoint: trunk watch client/index.html
     ports:
       - 8000:8000
 
