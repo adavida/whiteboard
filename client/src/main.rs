@@ -30,6 +30,10 @@ extern "C" {
     fn log_many(a: &str, b: &str);
 }
 
+macro_rules! console_log {
+    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
+}
+
 pub fn get_document() -> web_sys::Document {
     window()
         .and_then(|win| win.document())
@@ -48,9 +52,30 @@ pub fn add_text(text: &str) {
     body.append_child(text_node.as_ref()).expect("e1");
 }
 
+pub fn reload() {
+    window()
+        .expect("no windows")
+        .location()
+        .reload()
+        .expect("cannot reload page")
+}
+
 fn start_app() {
     let document = get_document();
     let body = document.body().expect("Could not access document.body");
+
+    let button = document
+        .create_element("button")
+        .expect("cannot create button");
+    button.set_inner_html("click  me for refresh");
+    let call_action = Closure::wrap(Box::new(|| reload()) as Box<dyn Fn()>);
+    button
+        .dyn_ref::<web_sys::HtmlElement>()
+        .expect("lol")
+        .set_onclick(Some(call_action.as_ref().unchecked_ref()));
+    call_action.forget();
+    body.append_child(button.as_ref()).expect("toto");
+
     let chat_box = compoment::chat::ChatBox::create(document, &body);
 
     let input = compoment::input::Input::new();
@@ -58,7 +83,18 @@ fn start_app() {
 
     let onmessage_callback = Closure::wrap(Box::new(move |e: web_sys::MessageEvent| {
         if let Ok(txt) = e.data().dyn_into::<js_sys::JsString>() {
-            chat_box.new_message(txt.as_string().expect("not string").as_str());
+            let entry_message_o =
+                message::Message::from_serialized(txt.as_string().expect("not string"));
+            if let Ok(entry_message) = entry_message_o {
+                match entry_message {
+                    message::Message::Chat(chat_message) => {
+                        chat_box.new_message(chat_message.as_str())
+                    }
+                    message::Message::Reload => reload(),
+                }
+            } else {
+                console_log!("error in message : {txt}")
+            }
         }
     }) as Box<dyn FnMut(web_sys::MessageEvent)>);
 

@@ -34,6 +34,7 @@ impl Actor for MyWs {
                 fut::ready(())
             })
             .wait(_ctx);
+        _ctx.text("hello word!");
     }
 
     fn stopped(&mut self, _ctx: &mut Self::Context) {

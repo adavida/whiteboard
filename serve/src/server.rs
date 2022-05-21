@@ -36,11 +36,15 @@ impl Actor for Server {
 
 impl Handler<TestMsg> for Server {
     type Result = usize;
-
     fn handle(&mut self, msg: TestMsg, _ctx: &mut Context<Self>) -> usize {
+        let message_chat = if msg.msg == "reload" {
+            message::Message::Reload
+        } else {
+            message::Message::Chat(msg.msg)
+        };
         for (_id, _ctx) in self.addrs.iter() {
             _ctx.do_send(TestMsg {
-                msg: msg.msg.to_string(),
+                msg: message_chat.to_serialized(),
             });
         }
         1

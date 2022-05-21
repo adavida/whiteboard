@@ -1,8 +1,6 @@
 use actix::prelude::*;
 use actix_files as fs;
-use actix_web::{
-    get, middleware::Logger, web, App, Error, HttpRequest, HttpResponse, HttpServer,
-};
+use actix_web::{get, middleware::Logger, web, App, Error, HttpRequest, HttpResponse, HttpServer};
 use actix_web_actors::ws;
 
 mod my_ws;
