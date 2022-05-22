@@ -10,6 +10,7 @@ macro_rules! console_log {
 
 type MutexWebsocket = Arc<Mutex<WebSocket>>;
 
+#[derive(Clone)]
 pub struct Ws {
     ws: MutexWebsocket,
 }

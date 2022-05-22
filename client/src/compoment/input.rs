@@ -16,15 +16,27 @@ impl Input {
             .unwrap()
             .dyn_into::<HtmlInputElement>()
             .unwrap();
-        Input {
+        let result = Input {
             input: input_element,
-        }
+        };
+
+        result
     }
 
-    pub fn set_change(&self, onchange_fn: Closure<dyn std::ops::FnMut()>) {
+    pub fn set_change(&self, ws: &crate::ws::Ws) {
+        let onchange_fn = Self::create_on_change_callback(self.input.clone(), ws);
         self.input
             .set_onchange(Some(onchange_fn.as_ref().unchecked_ref()));
         onchange_fn.forget();
+    }
+
+    fn create_on_change_callback(input: HtmlInputElement, ws: &crate::ws::Ws) -> Closure<dyn FnMut()> {
+        let ws_clone = ws.clone();
+        Closure::wrap(Box::new(move || {
+            let val = input.value();
+            ws_clone.send_msg_string(val.as_str());
+            input.set_value("");
+        }) as Box<dyn FnMut()>)
     }
 }
 
