@@ -1,4 +1,4 @@
-FROM rust:1.60
+FROM rust:1.61
 
 RUN cargo install cargo-watch \
     && cargo install --locked trunk\
