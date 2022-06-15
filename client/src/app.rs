@@ -1,9 +1,15 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use web_sys::Document;
 use web_sys::Element;
+use web_sys::HtmlElement;
 use crate::ws::Ws;
 
-pub struct App;
+pub struct App {
+    document: Document,
+    body: HtmlElement,
+}
+
 macro_rules! console_log {
     ($($t:tt)*) => (crate::log(&format_args!($($t)*).to_string()))
 }
@@ -51,16 +57,24 @@ fn create_ws(chat_box: crate::compoment::chat::ChatBox) -> Ws{
 impl App {
     pub fn new() -> Self {
         let document = crate::get_document();
-        let body = document.body().expect("Could not access document.body");
 
+        let body = document.body().expect("Could not access document.body");
+        let app = Self {
+            document,
+            body
+        };
+        app.display();
+        app
+    }
+
+    fn display(&self) {
         let refresh_button = create_refesh_button();
-        body.append_child(refresh_button.as_ref()).expect("Can not create reload button");
-        let chat_box = crate::compoment::chat::ChatBox::create(document, &body);
+        self.body.append_child(refresh_button.as_ref()).expect("Can not create reload button");
+        let chat_box = crate::compoment::chat::ChatBox::create(self.document.clone(), &self.body);
         let input = crate::compoment::input::Input::new();
 
         let ws = create_ws(chat_box);
         input.set_change(&ws);
-        body.append_child(input.input.as_ref()).expect("titi");
-        App
+        self.body.append_child(input.input.as_ref()).expect("titi");
     }
 }
