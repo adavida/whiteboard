@@ -1,9 +1,9 @@
+use crate::ws::Ws;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::Document;
 use web_sys::Element;
 use web_sys::HtmlElement;
-use crate::ws::Ws;
 
 pub struct App {
     document: Document,
@@ -13,7 +13,6 @@ pub struct App {
 macro_rules! console_log {
     ($($t:tt)*) => (crate::log(&format_args!($($t)*).to_string()))
 }
-
 
 fn create_refesh_button() -> Element {
     let document = crate::get_document();
@@ -30,7 +29,7 @@ fn create_refesh_button() -> Element {
     button
 }
 
-fn create_ws(chat_box: crate::compoment::chat::ChatBox) -> Ws{
+fn create_ws(chat_box: crate::compoment::chat::ChatBox) -> Ws {
     let ws = Ws::get_connect("ws://localhost:8080/ws");
 
     let onmessage_callback = Closure::wrap(Box::new(move |e: web_sys::MessageEvent| {
@@ -59,17 +58,26 @@ impl App {
         let document = crate::get_document();
 
         let body = document.body().expect("Could not access document.body");
-        let app = Self {
-            document,
-            body
-        };
+        let app = Self { document, body };
         app.display();
         app
     }
 
     fn display(&self) {
+        self.clear_page();
+
+        self.display_main_page();
+    }
+
+    fn clear_page(&self) {
+        self.body.set_inner_html("");
+    }
+
+    fn display_main_page(&self) {
         let refresh_button = create_refesh_button();
-        self.body.append_child(refresh_button.as_ref()).expect("Can not create reload button");
+        self.body
+            .append_child(refresh_button.as_ref())
+            .expect("Can not create reload button");
         let chat_box = crate::compoment::chat::ChatBox::create(self.document.clone(), &self.body);
         let input = crate::compoment::input::Input::new();
 
