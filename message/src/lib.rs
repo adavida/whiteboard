@@ -30,7 +30,11 @@ mod tests {
         let m = crate::Message::Chat("message content".to_string());
         let serialised = m.to_serialized();
 
-        assert_eq!(m, crate::Message::from_serialized(serialised).unwrap_or(crate::Message::Chat("".to_string())));
+        assert_eq!(
+            m,
+            crate::Message::from_serialized(serialised)
+                .unwrap_or(crate::Message::Chat("".to_string()))
+        );
     }
 
     #[test]
@@ -38,6 +42,10 @@ mod tests {
         let m = crate::Message::Chat("next message".to_string());
         let serialised = m.to_serialized();
 
-        assert_eq!(m, crate::Message::from_serialized(serialised).unwrap_or(crate::Message::Chat("".to_string())));
+        assert_eq!(
+            m,
+            crate::Message::from_serialized(serialised)
+                .unwrap_or(crate::Message::Chat("".to_string()))
+        );
     }
 }

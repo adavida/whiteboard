@@ -30,7 +30,10 @@ impl Input {
         onchange_fn.forget();
     }
 
-    fn create_on_change_callback(input: HtmlInputElement, ws: &crate::ws::Ws) -> Closure<dyn FnMut()> {
+    fn create_on_change_callback(
+        input: HtmlInputElement,
+        ws: &crate::ws::Ws,
+    ) -> Closure<dyn FnMut()> {
         let ws_clone = ws.clone();
         Closure::wrap(Box::new(move || {
             let val = input.value();

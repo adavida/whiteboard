@@ -7,9 +7,9 @@ use console_error_panic_hook::set_once as set_panic_hook;
 use wasm_bindgen::prelude::*;
 use web_sys::window;
 
+mod app;
 mod compoment;
 mod ws;
-mod app;
 
 #[wasm_bindgen]
 extern "C" {
