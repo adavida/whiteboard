@@ -5,13 +5,13 @@ edition = "2021"
 
 [dependencies]
 console_error_panic_hook = "0.1"
-wasm-bindgen = "0.2.79"
+wasm-bindgen = "0.2.80"
 wee_alloc = "0.4"
 js-sys = "0.3"
 message = { path = "../message" }
 
 [dependencies.web-sys]
-version = "0.3.22"
+version = "0.3.57"
 features = [
     "BinaryType",
     "Blob",
@@ -21,6 +21,7 @@ features = [
     "FileReader",
     "HtmlElement",
     "HtmlInputElement",
+    "HtmlLabelElement",
     "Location",
     "MessageEvent",
     "Node",

@@ -1,4 +1,5 @@
 use actix::prelude::*;
+use message::{FromClientMessage, FromServerMessage};
 use std::collections::HashMap;
 
 type AddrWS = Addr<super::my_ws::MyWs>;
@@ -17,8 +18,13 @@ pub struct Connect {
 
 #[derive(Message)]
 #[rtype(usize)]
-pub struct TestMsg {
+pub struct SrvMessage {
     pub msg: String,
+}
+#[derive(Message)]
+#[rtype(usize)]
+pub struct EntryMessage {
+    pub payload: FromClientMessage,
 }
 
 impl Server {
@@ -28,28 +34,37 @@ impl Server {
             count: 0,
         }
     }
+
+    fn send_message_to_chat_box(&self, txt: String) {
+        let message_chat = if txt == "reload" {
+            FromServerMessage::Reload
+        } else {
+            FromServerMessage::Chat(txt)
+        };
+        for (_id, ctx) in self.addrs.iter() {
+            ctx.do_send(SrvMessage {
+                msg: message_chat.to_serialized(),
+            });
+        }
+    }
 }
 
 impl Actor for Server {
     type Context = Context<Self>;
 }
 
-impl Handler<TestMsg> for Server {
+impl Handler<EntryMessage> for Server {
     type Result = usize;
-    fn handle(&mut self, msg: TestMsg, _ctx: &mut Context<Self>) -> usize {
-        let message_chat = if msg.msg == "reload" {
-            message::Message::Reload
-        } else {
-            message::Message::Chat(msg.msg)
-        };
-        for (_id, _ctx) in self.addrs.iter() {
-            _ctx.do_send(TestMsg {
-                msg: message_chat.to_serialized(),
-            });
+
+    fn handle(&mut self, msg: EntryMessage, _ctx: &mut Context<Self>) -> usize {
+        match msg.payload {
+            FromClientMessage::Login(txt) => eprint!("login : {txt}"),
+            FromClientMessage::ChatMsg(txt) => self.send_message_to_chat_box(txt),
         }
         1
     }
 }
+
 impl Default for Server {
     fn default() -> Self {
         Self::new()

@@ -1,4 +1,5 @@
 use crate::log;
+use message::FromClientMessage;
 use std::sync::{Arc, Mutex};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -70,8 +71,13 @@ impl Ws {
         Ws { ws: new_ws }
     }
 
-    pub fn send_msg_string(&self, msg: &str) {
-        match self.get_ws().lock().unwrap().send_with_str(msg) {
+    pub fn send_client_message(&self, msg: &FromClientMessage) {
+        match self
+            .get_ws()
+            .lock()
+            .unwrap()
+            .send_with_str(msg.to_serialized().as_str())
+        {
             Ok(_) => console_log!("message successfully sent"),
             Err(err) => console_log!("error sending message: {:?}", err),
         }

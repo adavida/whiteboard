@@ -1,3 +1,5 @@
+use crate::server::EntryMessage;
+
 use super::server;
 use actix::prelude::*;
 use actix_web_actors::ws;
@@ -47,19 +49,20 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
         match msg {
             Ok(ws::Message::Ping(msg)) => ctx.pong(&msg),
             Ok(ws::Message::Text(text)) => {
-                self.addr
-                    .send(server::TestMsg {
-                        msg: text.to_string(),
-                    })
-                    .into_actor(self)
-                    .then(|res, _act, ctx| {
-                        match res {
-                            Ok(_res) => {}
-                            _ => ctx.stop(),
-                        };
-                        fut::ready(())
-                    })
-                    .wait(ctx);
+                let message = message::FromClientMessage::from_serialized(text.to_string());
+                if let Ok(payload) = message {
+                    self.addr
+                        .send(EntryMessage { payload })
+                        .into_actor(self)
+                        .then(|res, _act, ctx| {
+                            match res {
+                                Ok(_res) => {}
+                                _ => ctx.stop(),
+                            };
+                            fut::ready(())
+                        })
+                        .wait(ctx);
+                }
             }
             Ok(ws::Message::Binary(bin)) => ctx.binary(bin),
             Ok(ws::Message::Close(reason)) => ctx.close(reason),
@@ -68,10 +71,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
     }
 }
 
-impl Handler<server::TestMsg> for MyWs {
+impl Handler<server::SrvMessage> for MyWs {
     type Result = usize;
 
-    fn handle(&mut self, msg: server::TestMsg, ctx: &mut Self::Context) -> usize {
+    fn handle(&mut self, msg: server::SrvMessage, ctx: &mut Self::Context) -> usize {
         ctx.text(msg.msg);
         1
     }

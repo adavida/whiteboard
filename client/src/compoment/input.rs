@@ -36,8 +36,8 @@ impl Input {
     ) -> Closure<dyn FnMut()> {
         let ws_clone = ws.clone();
         Closure::wrap(Box::new(move || {
-            let val = input.value();
-            ws_clone.send_msg_string(val.as_str());
+            let val = input.value().to_string();
+            ws_clone.send_client_message(&message::FromClientMessage::ChatMsg(val));
             input.set_value("");
         }) as Box<dyn FnMut()>)
     }
