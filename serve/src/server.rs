@@ -58,7 +58,7 @@ impl Handler<EntryMessage> for Server {
 
     fn handle(&mut self, msg: EntryMessage, _ctx: &mut Context<Self>) -> usize {
         match msg.payload {
-            FromClientMessage::Login(txt) => eprint!("login : {txt}"),
+            FromClientMessage::Login(txt) => println!("login : {txt}"),
             FromClientMessage::ChatMsg(txt) => self.send_message_to_chat_box(txt),
         }
         1

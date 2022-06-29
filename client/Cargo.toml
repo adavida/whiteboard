@@ -24,6 +24,7 @@ features = [
     "HtmlLabelElement",
     "Location",
     "MessageEvent",
+    "MouseEvent",
     "Node",
     "ProgressEvent",
     "Text",
