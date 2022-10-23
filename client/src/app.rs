@@ -113,18 +113,16 @@ impl App {
             .append_child(refresh_button.as_ref())
             .expect("Can not create reload button");
         let chat_box = crate::compoment::chat::ChatBox::create(self.document.clone(), &self.body);
-        let input = crate::compoment::input::Input::new();
 
         let callback = move |message: &message::FromServerMessage| {
             if let message::FromServerMessage::Chat(msg) = message {
                 chat_box.new_message(msg.as_str());
-                console_log!("1111 +++: {msg}");
             }
         };
         self.ws.add_action(Rc::from(callback));
 
-        let ws = create_ws();
-        input.set_change(&ws);
+        let input = crate::compoment::input::Input::new();
+        input.set_change(&self.ws);
         self.body.append_child(input.input.as_ref()).expect("titi");
     }
 }

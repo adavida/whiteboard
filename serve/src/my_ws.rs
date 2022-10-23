@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use crate::server::EntryMessage;
 
 use super::server;
@@ -7,14 +9,41 @@ use actix_web_actors::ws;
 type AddrServer = Addr<server::Server>;
 
 #[derive(Debug)]
+pub struct ClientData {
+    pub login: Option<String>,
+}
+
+#[derive(Debug, Clone)]
 pub struct MyWs {
     pub addr: AddrServer,
     pub id: usize,
+    pub client_data: Arc<Mutex<ClientData>>,
+}
+
+impl Drop for ClientData {
+    fn drop(&mut self) {
+        println!("drop");
+    }
 }
 
 impl MyWs {
-    pub fn new(addr_: AddrServer) -> Self {
-        Self { addr: addr_, id: 0 }
+    pub fn new(addr: AddrServer) -> Self {
+        let client_data = Arc::new(Mutex::new(ClientData { login: None }));
+        Self {
+            addr,
+            id: 0,
+            client_data,
+        }
+    }
+
+    pub fn set_login(&self, login: Option<String>) {
+        let mut c = self.client_data.lock().unwrap();
+        c.login = login;
+    }
+
+    pub fn get_login(&self) -> Option<String> {
+        let c = self.client_data.lock().unwrap();
+        c.login.clone()
     }
 }
 
@@ -52,7 +81,10 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for MyWs {
                 let message = message::FromClientMessage::from_serialized(text.to_string());
                 if let Ok(payload) = message {
                     self.addr
-                        .send(EntryMessage { payload })
+                        .send(EntryMessage {
+                            payload,
+                            client: self.clone(),
+                        })
                         .into_actor(self)
                         .then(|res, _act, ctx| {
                             match res {

@@ -25,6 +25,7 @@ pub struct SrvMessage {
 #[rtype(usize)]
 pub struct EntryMessage {
     pub payload: FromClientMessage,
+    pub client: super::my_ws::MyWs,
 }
 
 impl Server {
@@ -58,8 +59,18 @@ impl Handler<EntryMessage> for Server {
 
     fn handle(&mut self, msg: EntryMessage, _ctx: &mut Context<Self>) -> usize {
         match msg.payload {
-            FromClientMessage::Login(txt) => println!("login : {txt}"),
-            FromClientMessage::ChatMsg(txt) => self.send_message_to_chat_box(txt),
+            FromClientMessage::Login(txt) => {
+                msg.client.set_login(Some(txt));
+            }
+            FromClientMessage::ChatMsg(txt) => {
+
+                let login = if let Some(name) = msg.client.get_login() {
+                    name
+                } else {
+                    "nc".to_string()
+                };
+                self.send_message_to_chat_box(format!("{login} : {txt}"));
+            }
         }
         1
     }

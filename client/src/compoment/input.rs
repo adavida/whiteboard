@@ -4,6 +4,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::HtmlInputElement;
 
+#[derive(Clone)]
 pub struct Input {
     pub input: HtmlInputElement,
 }
